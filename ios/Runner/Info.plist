@@ -4,6 +4,10 @@
 	<dict>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Se usa para tomar la foto del icono de una aplicación.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Se usa para elegir el icono de una aplicación.</string>
 		<key>CFBundleDisplayName</key>
 		<string>App Track Ota Labs</string>
 		<key>CFBundleExecutable</key>

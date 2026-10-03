@@ -1,54 +1,24 @@
 part of com.app_track_ota_labs.app.widgets;
 
 class DetailedCard extends StatelessWidget {
-  const DetailedCard({required this.app, super.key});
+  const DetailedCard({required this.app, super.key, this.onTap});
 
   final AppModel app;
-
-  Color _statusColor() {
-    switch (app.status) {
-      case 'Live':
-        return BpColors.success;
-      case 'Draft':
-        return BpColors.textDim;
-      default:
-        return BpColors.warning;
-    }
-  }
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: BpColors.surfaceContainerLow,
-      border: Border.all(color: BpColors.outline.withAlpha(50), width: 1),
+      color: BlueprintColors.surfaceContainerLow,
+      border: kIndustrialBorder,
     ),
     child: ListTile(
+      onTap: onTap,
       contentPadding: const EdgeInsets.all(14),
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: BpColors.background,
-          border: Border.all(
-            color: BpColors.outline.withAlpha(60),
-            width: 1,
-          ),
-        ),
-        child: Image.asset(
-          'assets/apps/${app.iconApp}.png',
-          height: 48,
-          width: 48,
-          fit: BoxFit.contain,
-        ),
-      ),
+      leading: AppIconBox(app: app),
       title: Text(
         app.name,
-        style: GoogleFonts.jetBrainsMono(
-          fontWeight: FontWeight.w700,
-          fontSize: 13,
-          color: BpColors.textPrimary,
-          letterSpacing: 0.5,
-        ),
+        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700),
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,45 +26,34 @@ class DetailedCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${app.bundleId}  //  v${app.version}',
-            style: GoogleFonts.jetBrainsMono(
-              color: BpColors.primaryContainer,
-              fontSize: 9,
-              letterSpacing: 0.5,
-              fontWeight: FontWeight.w500,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: BlueprintColors.accentOrange,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            '${app.platform.join(', ')}  ·  ${app.description}',
-            style: GoogleFonts.jetBrainsMono(
-              color: BpColors.textDim,
-              fontSize: 9,
-              letterSpacing: 0.3,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: <Widget>[
+              for (String platform in app.platform)
+                CustomBadge(
+                  label: platform.toUpperCase(),
+                  color: BlueprintColors.infoBlue,
+                ),
+            ],
           ),
+          if (app.description.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 6),
+            Text(
+              app.description,
+              style: AppTextStyles.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: _statusColor().withAlpha(25),
-          border: Border.all(
-            color: _statusColor().withAlpha(100),
-            width: 1,
-          ),
-        ),
-        child: Text(
-          app.status.toUpperCase(),
-          style: GoogleFonts.jetBrainsMono(
-            color: _statusColor(),
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1,
-          ),
-        ),
-      ),
+      trailing: AppStatusBadge(status: app.status),
     ),
   );
 }

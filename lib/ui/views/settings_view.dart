@@ -2,109 +2,71 @@ part of com.app_track_ota_labs.app.views;
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
+  static const String route = '/settings';
 
   @override
-  Widget build(BuildContext context) => GridBackground(
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _buildSectionLabel('SYSTEM_CONFIG'),
-          const SizedBox(height: 12),
-          const VersionWidget(),
-          const SizedBox(height: 32),
-          _buildSectionLabel('SESSION'),
-          const SizedBox(height: 12),
-          _buildLogoutTile(context),
-          const SizedBox(height: 32),
-          _buildSectionLabel('BUILD_INFO'),
-          const SizedBox(height: 12),
-          _buildInfoRow('ENVIRONMENT', 'PRODUCTION'),
-          _buildDivider(),
-          _buildInfoRow('PLATFORM', 'FLUTTER'),
-          _buildDivider(),
-          _buildInfoRow('THEME', 'BLUEPRINT_DARK_v1'),
-        ],
-      ),
-    ),
-  );
+  Widget build(BuildContext context) {
+    User? user = prov.Provider.of<AppProvider>(context).user;
 
-  Widget _buildSectionLabel(String label) => Row(
-    children: <Widget>[
-      Container(width: 2, height: 14, color: BpColors.primaryContainer),
-      const SizedBox(width: 8),
-      Text(
-        label,
-        style: GoogleFonts.jetBrainsMono(
-          color: BpColors.textDim,
-          fontSize: 9,
-          letterSpacing: 2,
-          fontWeight: FontWeight.w500,
+    return BlueprintScaffold(
+      appBar: const BlueprintFormAppBar(title: 'Configuración'),
+      body: BlueprintFormBody(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (user?.email != null) ...<Widget>[
+              Text(user!.email!, style: AppTextStyles.titleMedium),
+              const SizedBox(height: 24),
+            ],
+            const SectionHeader(label: 'SYSTEM_CONFIG'),
+            const SizedBox(height: 12),
+            const VersionWidget(),
+            const SizedBox(height: 32),
+            const SectionHeader(label: 'BUILD_INFO'),
+            const SizedBox(height: 4),
+            _buildInfoRow('ENVIRONMENT', kReleaseModeLabel),
+            const Divider(height: 1, color: BlueprintColors.outlineVariant),
+            _buildInfoRow('PLATFORM', 'FLUTTER'),
+            const Divider(height: 1, color: BlueprintColors.outlineVariant),
+            _buildInfoRow('THEME', 'ENGINEERING_BLUEPRINT'),
+            const SizedBox(height: 32),
+            OutlinedButton.icon(
+              onPressed: () => _logout(context),
+              icon: const Icon(Icons.logout, size: 18),
+              label: const Text('Cerrar sesión'),
+            ),
+          ],
         ),
       ),
-    ],
-  );
+    );
+  }
 
-  Widget _buildLogoutTile(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: BpColors.surfaceContainerLow,
-      border: Border.all(color: BpColors.outline.withAlpha(50), width: 1),
-    ),
-    child: ListTile(
-      onTap: () =>
-          Provider.of<AppProvider>(context, listen: false).logout(context),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: const Icon(
-        Icons.logout,
-        color: BpColors.error,
-        size: 18,
-      ),
-      title: Text(
-        'CLOSE_SESSION',
-        style: GoogleFonts.jetBrainsMono(
-          color: BpColors.error,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.5,
-        ),
-      ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios,
-        size: 12,
-        color: BpColors.textDim,
-      ),
-    ),
-  );
+  static const String kReleaseModeLabel = kReleaseMode
+      ? 'PRODUCTION'
+      : 'DEVELOPMENT';
+
+  /// Cierra sesión y vuelve a la raíz: `AuthWrapper` muestra el login, pero
+  /// esta pantalla está pusheada encima y no se quita sola.
+  Future<void> _logout(BuildContext context) async {
+    NavigatorState navigator = Navigator.of(context);
+    await prov.Provider.of<AppProvider>(context, listen: false).logout(context);
+    navigator.popUntil((Route<dynamic> route) => route.isFirst);
+  }
 
   Widget _buildInfoRow(String key, String value) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 12),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
-          key,
-          style: GoogleFonts.jetBrainsMono(
-            color: BpColors.textDim,
-            fontSize: 10,
-            letterSpacing: 1,
-          ),
-        ),
+        Text(key, style: AppTextStyles.bodySmall.copyWith(letterSpacing: 1)),
         Text(
           value,
-          style: GoogleFonts.jetBrainsMono(
-            color: BpColors.textPrimary,
-            fontSize: 10,
+          style: AppTextStyles.bodySmall.copyWith(
+            color: BlueprintColors.textPrimary,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
           ),
         ),
       ],
     ),
-  );
-
-  Widget _buildDivider() => Container(
-    height: 1,
-    color: BpColors.outlineVariant.withAlpha(80),
   );
 }

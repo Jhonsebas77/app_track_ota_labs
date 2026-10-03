@@ -1,13 +1,8 @@
-// lib/widgets/schematic_ring.dart
-import 'dart:math' as math;
+part of com.app_track_ota_labs.app.widgets;
 
-import 'package:flutter/material.dart';
-
-import '../../../theme/blueprint_colors.dart';
-
-/// Slowly rotating dashed circle — replicates the CSS `animate-spin 20s` ring.
+/// Anillo punteado que rota lentamente alrededor de [child] (usado para
+/// enmarcar el logo en el login).
 class SchematicRing extends StatefulWidget {
-
   const SchematicRing({required this.child, super.key, this.size = 160});
   final Widget child;
   final double size;
@@ -44,18 +39,17 @@ class _SchematicRingState extends State<SchematicRing>
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          // Rotating dashed ring
-          AnimatedBuilder(
-            animation: _ctrl,
-            builder: (_, __) => Transform.rotate(
-                angle: _ctrl.value * 2 * math.pi,
+          RepaintBoundary(
+            child: RotationTransition(
+              turns: _ctrl,
+              child: RepaintBoundary(
                 child: CustomPaint(
                   size: Size(outerSize, outerSize),
-                  painter: _DashedCirclePainter(),
+                  painter: const _DashedCirclePainter(),
                 ),
               ),
+            ),
           ),
-          // Static inner content
           widget.child,
         ],
       ),
@@ -64,10 +58,12 @@ class _SchematicRingState extends State<SchematicRing>
 }
 
 class _DashedCirclePainter extends CustomPainter {
+  const _DashedCirclePainter();
+
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
-      ..color = BpColors.outline.withAlpha(70)
+      ..color = BlueprintColors.outline.withAlpha(70)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 
