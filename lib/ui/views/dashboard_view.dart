@@ -1,17 +1,30 @@
 part of com.app_track_ota_labs.app.views;
 
-class DashboardView extends StatelessWidget {
+class DashboardView extends ConsumerWidget {
   const DashboardView({super.key});
   static const String route = '/dashboard';
 
   @override
-  Widget build(BuildContext context) => GridBackground(
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context, WidgetRef ref) {
+    AsyncValue<List<AppModel>> apps = ref.watch(appsProvider);
+    List<AppModel> list = apps.value ?? <AppModel>[];
+    List<AppModel> recent = _byNewest(list);
+    int live = list.where((AppModel a) => a.status == 'Live').length;
+    int draft = list.where((AppModel a) => a.status == 'Draft').length;
+    return RefreshIndicator(
+      onRefresh: () => ref.refresh(appsProvider.future),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
         children: <Widget>[
-          _buildStats(context)
+          const _DashboardHeader().animate().fadeIn(duration: 400.ms),
+          const SizedBox(height: 16),
+          StatsCard(
+                title: 'TOTAL_APPLICATIONS',
+                total: apps.hasValue ? list.length : null,
+                live: live,
+                inReview: list.length - live - draft,
+                draft: draft,
+              )
               .animate()
               .fadeIn(duration: 500.ms, delay: 100.ms)
               .slideY(
@@ -20,174 +33,212 @@ class DashboardView extends StatelessWidget {
                 duration: 400.ms,
                 curve: Curves.easeOut,
               ),
-          const SizedBox(height: 16),
-          _buildNewAppButton(context)
-              .animate()
-              .fadeIn(duration: 500.ms, delay: 200.ms),
-          const SizedBox(height: 32),
-          _buildSectionHeader(context)
-              .animate()
-              .fadeIn(duration: 500.ms, delay: 300.ms),
-          const SizedBox(height: 16),
-          _buildAppList(context)
-              .animate()
-              .fadeIn(duration: 500.ms, delay: 400.ms),
-        ],
-      ),
-    ),
-  );
-
-  Widget _buildStats(BuildContext context) => StatsCard(
-    title: 'TOTAL_APPLICATIONS',
-    value: Provider.of<AppProvider>(context).apps.length.toString(),
-  );
-
-  Widget _buildNewAppButton(BuildContext context) => SizedBox(
-    width: double.infinity,
-    child: ElevatedButton.icon(
-      onPressed: () {
-        CustomNavigator().push(
-          context,
-          const AddApplicationScreen(),
-          animation: CustomNavigationAnimation.slideBottom,
-        );
-      },
-      icon: const Icon(Icons.add, size: 16, color: BpColors.onPrimaryFixed),
-      label: Text(
-        'NEW_APPLICATION',
-        style: GoogleFonts.jetBrainsMono(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 2.5,
-          color: BpColors.onPrimaryFixed,
-        ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: BpColors.primaryContainer,
-        foregroundColor: BpColors.onPrimaryFixed,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
-        side: const BorderSide(color: BpColors.primaryContainer, width: 1),
-      ),
-    ),
-  );
-
-  Widget _buildSectionHeader(BuildContext context) => Row(
-    children: <Widget>[
-      Container(width: 2, height: 16, color: BpColors.primaryContainer),
-      const SizedBox(width: 8),
-      Text(
-        'MY_APPLICATIONS',
-        style: GoogleFonts.jetBrainsMono(
-          color: BpColors.textPrimary,
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 2,
-        ),
-      ),
-      const Spacer(),
-      GestureDetector(
-        onTap: () {
-          CustomNavigator().push(
-            context,
-            const MyApplicationsScreen(),
-            animation: CustomNavigationAnimation.fade,
-          );
-        },
-        child: Row(
-          children: <Widget>[
-            Text(
-              'VIEW_ALL',
-              style: GoogleFonts.jetBrainsMono(
-                color: BpColors.primaryContainer,
-                fontSize: 9,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 10,
-              color: BpColors.primaryContainer,
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-
-  Widget _buildAppList(BuildContext context) => FutureBuilder<List<AppModel>>(
-    future: fetchAllApps(),
-    builder: (BuildContext context, AsyncSnapshot<List<AppModel>> snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 48),
-          child: Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 1.5,
-              color: BpColors.primaryContainer,
-            ),
-          ),
-        );
-      }
-      if (snapshot.hasError) {
-        if (context.mounted) {
-          showErrorSnackBar(context, 'Error with fetchAllApps');
-        }
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32),
-          child: Center(
-            child: Text(
-              'ERR: ${snapshot.error}',
-              style: GoogleFonts.jetBrainsMono(
-                color: BpColors.error,
-                fontSize: 10,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-        );
-      }
-      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48),
-          child: Center(
-            child: Column(
+          const SizedBox(height: 12),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                const Icon(
-                  Icons.inbox_outlined,
-                  color: BpColors.textDim,
-                  size: 32,
+                Expanded(
+                  flex: 7,
+                  child: PlatformBreakdownCard(
+                    counts: <String, int>{
+                      for (String p in _AddApplicationScreenState._platforms)
+                        p: list
+                            .where((AppModel a) => a.platform.contains(p))
+                            .length,
+                    },
+                    total: list.length,
+                  ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'NO_APPLICATIONS_REGISTERED',
-                  style: GoogleFonts.jetBrainsMono(
-                    color: BpColors.textDim,
-                    fontSize: 9,
-                    letterSpacing: 1.5,
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 5,
+                  child: LatestEntryCard(
+                    app: recent.firstOrNull,
+                    onTap: () => _openDetail(context, recent.first),
                   ),
                 ),
               ],
             ),
-          ),
-        );
-      }
+          ).animate().fadeIn(duration: 500.ms, delay: 150.ms),
+          const SizedBox(height: 32),
+          SectionHeader(
+            label: 'RECENT_APPLICATIONS',
+            actionLabel: 'VIEW_ALL',
+            onActionTap: () =>
+                ref.read(selectedTabIndexProvider.notifier).current = 1,
+          ).animate().fadeIn(duration: 500.ms, delay: 300.ms),
+          const SizedBox(height: 16),
+          _AppList(
+            apps: apps,
+            recent: recent.take(_recentLimit).toList(),
+          ).animate().fadeIn(duration: 500.ms, delay: 400.ms),
+        ],
+      ),
+    );
+  }
+}
 
-      List<AppModel> apps = snapshot.data!;
-      return ListView.separated(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        padding: EdgeInsets.zero,
-        itemCount: apps.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (BuildContext context, int index) =>
-            DashboardCard(app: apps[index]),
-      );
-    },
+/// Apps que muestra la lista resumida del dashboard.
+const int _recentLimit = 5;
+
+/// [apps] de la más reciente a la más antigua según `createdAt`; las que no
+/// tienen fecha van al final.
+List<AppModel> _byNewest(List<AppModel> apps) => <AppModel>[...apps]
+  ..sort((AppModel a, AppModel b) {
+    DateTime? da = a.createdAt;
+    DateTime? db = b.createdAt;
+    if (da == null || db == null) return da == null ? (db == null ? 0 : 1) : -1;
+    return db.compareTo(da);
+  });
+
+/// Encabezado del dashboard: ruta "de sistema", título y fecha actual.
+class _DashboardHeader extends StatelessWidget {
+  const _DashboardHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    DateTime now = DateTime.now();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return Container(
+      padding: const EdgeInsets.only(bottom: 12),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: BlueprintColors.outlineVariant),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text.rich(
+                  TextSpan(
+                    text: 'SYS://DASHBOARD ',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: BlueprintColors.accentOrange,
+                      letterSpacing: 2,
+                    ),
+                    children: const <InlineSpan>[
+                      TextSpan(
+                        text: 'REV.A1',
+                        style: TextStyle(color: BlueprintColors.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text('OVERVIEW', style: AppTextStyles.headlineLarge),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              Text(
+                'SYS_DATE',
+                style: AppTextStyles.labelSmall.copyWith(letterSpacing: 1.5),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${now.year}-${two(now.month)}-${two(now.day)}',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: BlueprintColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Lista resumida de las apps más recientes del dashboard.
+class _AppList extends StatelessWidget {
+  const _AppList({required this.apps, required this.recent});
+
+  final AsyncValue<List<AppModel>> apps;
+  final List<AppModel> recent;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget? status = _appsStatus(apps);
+    if (status != null) return status;
+    List<AppModel> list = recent;
+    return Column(
+      children: <Widget>[
+        for (int i = 0; i < list.length; i++) ...<Widget>[
+          if (i > 0) const SizedBox(height: 12),
+          DashboardCard(
+            app: list[i],
+            onTap: () => _openDetail(context, list[i]),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Abre el detalle de [app]; lo usan el dashboard y el tab "Apps".
+void _openDetail(BuildContext context, AppModel app) => CustomNavigator().push(
+  context,
+  AppDetailScreen(app: app),
+  route: AppDetailScreen.route,
+);
+
+/// Estado de carga, error o lista vacía para [appsProvider]; `null` cuando
+/// hay apps que mostrar. Lo comparten el dashboard y el tab "Apps".
+Widget? _appsStatus(AsyncValue<List<AppModel>> apps) => switch (apps) {
+  AsyncData<List<AppModel>>(:List<AppModel> value) when value.isNotEmpty =>
+    null,
+  AsyncData<List<AppModel>>() => const _EmptyState(
+    icon: Icons.inbox_outlined,
+    label: 'NO_APPLICATIONS_REGISTERED',
+  ),
+  AsyncError<List<AppModel>>(:Object error) => _EmptyState(
+    icon: Icons.error_outline,
+    label: 'ERR: $error',
+    color: BlueprintColors.danger,
+  ),
+  _ => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 48),
+    child: Center(child: CircularProgressIndicator(strokeWidth: 1.5)),
+  ),
+};
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({
+    required this.icon,
+    required this.label,
+    this.color = BlueprintColors.textMuted,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 48),
+    child: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(icon, color: color, size: 32),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.labelSmall.copyWith(
+              color: color,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
+      ),
+    ),
   );
 }

@@ -27,7 +27,11 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --base-href="/app_track_ota_labs/"
+        run: >-
+          flutter build web --base-href="/app_track_ota_labs/"
+          --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          --dart-define=AUTH_EMAIL=${{ secrets.AUTH_EMAIL }}
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4

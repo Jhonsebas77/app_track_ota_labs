@@ -1,36 +1,33 @@
-// lib/theme/blueprint_colors.dart
-import 'package:flutter/material.dart';
+part of com.app_track_ota_labs.app.ui.theme;
 
-class BpColors {
-  BpColors._();
+/// Paleta del design system "Engineering Blueprint Schematic", compartida con
+/// auto_log_mi_nave_ota_labs. Los cuatro primeros valores son los tokens base;
+/// el resto son derivados, documentados como tales.
+class BlueprintColors {
+  BlueprintColors._();
 
-  // ── Background / Surface ─────────────────────────────────
-  static const Color background         = Color(0xFF0B1623);
-  static const Color surfaceContainerLow = Color(0xFF221A13);
-  static const Color surfaceContainer   = Color(0xFF271E16);
-  static const Color gridLine           = Color(0xFF1C2B3A);
-  static const Color outlineVariant     = Color(0xFF544435);
-  static const Color outline            = Color(0xFFA28D7B);
+  static const Color background = Color(0xFF0B1623);
+  static const Color gridLine = Color(0xFF1C2B3A);
+  static const Color accentOrange = Color(0xFFFF9F30);
+  static const Color successGreen = Color(0xFF00FF9D);
 
-  // ── Text ─────────────────────────────────────────────────
-  static const Color textPrimary        = Color(0xFFF0F0F0);
-  static const Color textDim            = Color(0xFF8B9BB4);
-  static const Color onSurface         = Color(0xFFF0DFD3);
-  static const Color onSurfaceVariant  = Color(0xFFDAC2AF);
+  // Derivados, elegidos para completar la
+  // paleta oscura/monospace/industrial sin romper el contraste con el fondo.
+  static const Color warning = accentOrange;
+  static const Color danger = Color(0xFFFF4D4D);
+  static const Color outlineVariant = Color(0xFF2A3F52);
+  static const Color surfaceContainerLow = Color(0xFF101E2C);
+  static const Color textPrimary = Color(0xFFE6EDF3);
+  static const Color textMuted = Color(0xFF7C93A8);
 
-  // ── Accent / Primary ─────────────────────────────────────
-  static const Color primary            = Color(0xFFFFC690);
-  static const Color primaryContainer   = Color(0xFFFF9F30);
-  static const Color onPrimaryFixed     = Color(0xFF2D1600);
-  static const Color onPrimaryFixedVariant = Color(0xFF6A3C00);
-  static const Color warning            = Color(0xFFFF9F30);
+  /// Línea decorativa más clara que [outlineVariant] (brackets, ring
+  /// giratorio de la vista de login). Derivado.
+  static const Color outline = Color(0xFF4A6B85);
 
-  // ── Status ───────────────────────────────────────────────
-  static const Color success            = Color(0xFF00FF9D);
-  static const Color error              = Color(0xFFFFB4AB);
-  static const Color errorContainer     = Color(0xFF93000A);
+  /// Color de texto/ícono sobre [accentOrange] (botón primario de acento).
+  /// Derivado.
+  static const Color onAccent = Color(0xFF1A0F00);
 
-  // ── Computed ─────────────────────────────────────────────
-  static Color accentGlow               = const Color(0xFFFF9F30).withAlpha(40);
-  static Color successGlow              = const Color(0xFF00FF9D).withAlpha(30);
+  /// Acento azul (snackbars/badges informativos). Derivado.
+  static const Color infoBlue = Color(0xFF4DA6FF);
 }

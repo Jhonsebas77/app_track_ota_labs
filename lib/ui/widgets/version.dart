@@ -20,6 +20,7 @@ class _VersionWidgetState extends State<VersionWidget> {
 
   Future<void> _initPackageInfo() async {
     PackageInfo info = await PackageInfo.fromPlatform();
+    if (!mounted) return;
     setState(() {
       _appName = info.appName;
       _version = info.version;
@@ -28,65 +29,46 @@ class _VersionWidgetState extends State<VersionWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: BpColors.surfaceContainerLow,
-      border: Border.all(color: BpColors.outline.withAlpha(50), width: 1),
+      color: BlueprintColors.surfaceContainerLow,
+      border: kIndustrialBorder,
     ),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: <Widget>[
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: BpColors.background,
-              border: Border.all(
-                color: BpColors.outline.withAlpha(60),
-                width: 1,
-              ),
-            ),
-            child: ColorFiltered(
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.modulate,
-              ),
-              child: Image.asset(
-                'assets/logo_ota.png',
-                height: 48,
-                width: 48,
-                fit: BoxFit.contain,
-              ),
-            ),
+    child: Row(
+      children: <Widget>[
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: BlueprintColors.background,
+            border: kIndustrialBorder,
           ),
-          const SizedBox(width: 16),
-          Column(
+          child: Image.asset('assets/logo_ota.png', fit: BoxFit.contain),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
+              SelectableText(
                 _appName.toUpperCase(),
-                style: GoogleFonts.jetBrainsMono(
+                style: AppTextStyles.bodyMedium.copyWith(
                   fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                  color: BpColors.textPrimary,
                   letterSpacing: 1,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                'OTA_LABS  //  v$_version  ($_buildNumber)',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 9,
-                  color: BpColors.primaryContainer,
-                  letterSpacing: 0.5,
-                  fontWeight: FontWeight.w500,
+              SelectableText(
+                'By Ota_Labs  //  v$_version ($_buildNumber)',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: BlueprintColors.accentOrange,
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     ),
   );
 }

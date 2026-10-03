@@ -12,6 +12,8 @@ class AppModel {
     this.icon,
     this.status = 'Live',
     this.developPlatform = 'Flutter',
+    this.deployUrl,
+    this.createdAt,
   });
 
   factory AppModel.fromMap(Map<String, dynamic> map) {
@@ -21,7 +23,7 @@ class AppModel {
             ?.map((dynamic item) => item.toString())
             .toList() ??
         <String>[];
-    int colorValue = _parseColor(map['color_value']);
+    int colorValue = _parseColor(map['color']);
     return AppModel(
       id: map['app_id']?.toString() ?? '',
       name: map['app_name'] as String? ?? 'Unnamed App',
@@ -33,6 +35,8 @@ class AppModel {
       status: map['status'] as String? ?? 'Live',
       developPlatform: map['develop_platform'] as String? ?? '',
       version: map['version'] as String? ?? '0.0.1',
+      deployUrl: map['deploy_url'] as String?,
+      createdAt: DateTime.tryParse(map['created_at']?.toString() ?? ''),
     );
   }
 
@@ -47,6 +51,10 @@ class AppModel {
 
   String? get iconApp => icon != null && icon!.isEmpty ? 'default' : icon;
 
+  /// `true` cuando [icon] es una URL (icono subido a Supabase Storage) en vez
+  /// del nombre de un asset local en `assets/apps/`.
+  bool get hasRemoteIcon => icon?.startsWith('http') ?? false;
+
   final String id;
   final String name;
   final String description;
@@ -57,4 +65,6 @@ class AppModel {
   final String status;
   final String developPlatform;
   final String version;
+  final String? deployUrl;
+  final DateTime? createdAt;
 }

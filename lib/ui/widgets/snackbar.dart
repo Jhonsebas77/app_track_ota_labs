@@ -29,12 +29,11 @@ void showSuccessSnackBar(BuildContext context, String message) {
   );
 }
 
-Color backgroundColorType(BuildContext context, SnackbarType type) =>
-    switch (type) {
-      SnackbarType.information => Colors.blueGrey,
-      SnackbarType.success => Colors.green,
-      SnackbarType.error => Colors.red,
-    };
+Color accentColorType(SnackbarType type) => switch (type) {
+  SnackbarType.information => BlueprintColors.infoBlue,
+  SnackbarType.success => BlueprintColors.successGreen,
+  SnackbarType.error => BlueprintColors.danger,
+};
 
 IconData defaultIcon(SnackbarType type) => switch (type) {
   SnackbarType.error => Icons.error_outline_outlined,
@@ -53,11 +52,13 @@ class CustomSnackBar extends SnackBar {
   }) : super(
          key: key,
          elevation: 2,
-         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+         shape: RoundedRectangleBorder(
+           side: BorderSide(color: accentColorType(type)),
+         ),
          behavior: SnackBarBehavior.floating,
          margin: kIsWeb ? null : const EdgeInsetsGeometry.all(16),
          width: kIsWeb ? 556 : null,
-         backgroundColor: backgroundColorType(context, type),
+         backgroundColor: BlueprintColors.surfaceContainerLow,
          content: Theme(
            data: themeData ?? Theme.of(context),
            child: SnackBarContent(
@@ -84,14 +85,10 @@ class SnackBarContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     children: <Widget>[
-      Icon(prefixIcon ?? defaultIcon(type), color: Colors.white),
+      Icon(prefixIcon ?? defaultIcon(type), color: accentColorType(type)),
       const SizedBox(width: 8),
       Expanded(
-        child: Text(
-          label,
-          softWrap: true,
-          style: const TextStyle(color: Colors.white),
-        ),
+        child: Text(label, softWrap: true, style: AppTextStyles.bodyMedium),
       ),
       const SizedBox(width: 8),
     ],

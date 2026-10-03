@@ -1,16 +1,12 @@
-// lib/widgets/corner_brackets.dart
-import 'package:flutter/material.dart';
+part of com.app_track_ota_labs.app.widgets;
 
-import '../../../theme/blueprint_colors.dart';
-
-/// Renders four angular corner brackets as a decorative overlay,
-/// exactly as in the HTML `absolute` positioned divs.
+/// Cuatro corchetes decorativos en las esquinas, tipo overlay de diagnóstico.
 class CornerBrackets extends StatelessWidget {
   const CornerBrackets({
     super.key,
     this.size = 24,
     this.inset = 20,
-    this.color = BpColors.outline,
+    this.color = BlueprintColors.outline,
     this.strokeWidth = 1,
   });
   final double size;
@@ -19,54 +15,53 @@ class CornerBrackets extends StatelessWidget {
   final double strokeWidth;
 
   @override
-  Widget build(BuildContext context) => Stack(
-    children: <Widget>[
-      // Top-left
-      Positioned(
-        top: inset,
-        left: inset,
-        child: _Bracket(
-          size: size,
-          color: color.withAlpha(100),
-          strokeWidth: strokeWidth,
-          corners: const <_Corner>{_Corner.topLeft},
+  Widget build(BuildContext context) {
+    Color bracketColor = color.withAlpha(100);
+    return Stack(
+      children: <Widget>[
+        Positioned(
+          top: inset,
+          left: inset,
+          child: _Bracket(
+            size: size,
+            color: bracketColor,
+            strokeWidth: strokeWidth,
+            corners: const <_Corner>{_Corner.topLeft},
+          ),
         ),
-      ),
-      // Top-right
-      Positioned(
-        top: inset,
-        right: inset,
-        child: _Bracket(
-          size: size,
-          color: color.withAlpha(100),
-          strokeWidth: strokeWidth,
-          corners: const <_Corner>{_Corner.topRight},
+        Positioned(
+          top: inset,
+          right: inset,
+          child: _Bracket(
+            size: size,
+            color: bracketColor,
+            strokeWidth: strokeWidth,
+            corners: const <_Corner>{_Corner.topRight},
+          ),
         ),
-      ),
-      // Bottom-left
-      Positioned(
-        bottom: inset,
-        left: inset,
-        child: _Bracket(
-          size: size,
-          color: color.withAlpha(100),
-          strokeWidth: strokeWidth,
-          corners: const <_Corner>{_Corner.bottomLeft},
+        Positioned(
+          bottom: inset,
+          left: inset,
+          child: _Bracket(
+            size: size,
+            color: bracketColor,
+            strokeWidth: strokeWidth,
+            corners: const <_Corner>{_Corner.bottomLeft},
+          ),
         ),
-      ),
-      // Bottom-right
-      Positioned(
-        bottom: inset,
-        right: inset,
-        child: _Bracket(
-          size: size,
-          color: color.withAlpha(100),
-          strokeWidth: strokeWidth,
-          corners: const <_Corner>{_Corner.bottomRight},
+        Positioned(
+          bottom: inset,
+          right: inset,
+          child: _Bracket(
+            size: size,
+            color: bracketColor,
+            strokeWidth: strokeWidth,
+            corners: const <_Corner>{_Corner.bottomRight},
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }
 
 enum _Corner { topLeft, topRight, bottomLeft, bottomRight }
@@ -120,19 +115,15 @@ class _BracketPainter extends CustomPainter {
         case _Corner.topLeft:
           canvas.drawLine(const Offset(0, 0), Offset(w, 0), paint);
           canvas.drawLine(const Offset(0, 0), Offset(0, h), paint);
-          break;
         case _Corner.topRight:
           canvas.drawLine(const Offset(0, 0), Offset(w, 0), paint);
           canvas.drawLine(Offset(w, 0), Offset(w, h), paint);
-          break;
         case _Corner.bottomLeft:
           canvas.drawLine(Offset(0, h), Offset(w, h), paint);
           canvas.drawLine(const Offset(0, 0), Offset(0, h), paint);
-          break;
         case _Corner.bottomRight:
           canvas.drawLine(Offset(0, h), Offset(w, h), paint);
           canvas.drawLine(Offset(w, 0), Offset(w, h), paint);
-          break;
       }
     }
   }

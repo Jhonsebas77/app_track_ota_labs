@@ -2,27 +2,45 @@ part of com.app_track_ota_labs.app.views;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+  static const String route = '/login';
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController(
-    text: 'jhonsebas77.otalabs@gmail.com',
-  );
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _passwordFocus = FocusNode();
   bool _obscureText = true;
   bool _isLoading = false;
   String? _errorMsg;
+  String _appName = '...';
+  String _version = '...';
+  String _buildNumber = '...';
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    PackageInfo info = await PackageInfo.fromPlatform();
+    if (!mounted) return;
+    setState(() {
+      _appName = info.appName;
+      _version = info.version;
+      _buildNumber = info.buildNumber;
+    });
+  }
 
   TextStyle _label({
-    Color color = BpColors.textDim,
+    Color color = BlueprintColors.textMuted,
     double size = 10,
     double spacing = 1.5,
     FontWeight weight = FontWeight.w500,
-  }) => GoogleFonts.jetBrainsMono(
+  }) => TextStyle(
+    fontFamily: AppTextStyles.fontFamily,
     color: color,
     fontSize: size,
     letterSpacing: spacing,
@@ -30,43 +48,45 @@ class _LoginScreenState extends State<LoginScreen> {
     height: 1.2,
   );
 
+  /// Inicia sesión con [hardcodedEmail] (`AUTH_EMAIL` del DartDefine) y la
+  /// contraseña escrita en pantalla.
   Future<void> _login() async {
+    if (_isLoading) return;
+    // Se lee el provider antes del primer `await` para no usar `context`
+    // después de un gap async.
+    AppProvider appProvider = prov.Provider.of<AppProvider>(
+      context,
+      listen: false,
+    );
+
     setState(() {
       _isLoading = true;
       _errorMsg = null;
     });
 
-    AppProvider provider = Provider.of<AppProvider>(context, listen: false);
-
     await HapticFeedback.mediumImpact();
 
+    String? error;
     try {
-      await provider.login(_emailController.text, _passwordController.text);
-      if (mounted) {
-        showSuccessSnackBar(context, 'Login successfully');
-      }
+      await appProvider.login(hardcodedEmail, _passwordController.text);
     } on AuthException catch (e) {
-      if (mounted) {
-        setState(() => _errorMsg = e.message);
-        if (context.mounted) {
-          showErrorSnackBar(context, 'Usuario o contraseña erróneo');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _errorMsg = 'ERR: UNEXPECTED_FAILURE');
-        if (context.mounted) {
-          showErrorSnackBar(context, 'An unexpected error has occurred');
-        }
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      error = e.message;
+    } catch (_) {
+      error = 'ERR: UNEXPECTED_FAILURE';
     }
+
+    if (!mounted) return;
+    if (error == null) {
+      showSuccessSnackBar(context, 'Login successfully');
+    } else {
+      setState(() => _errorMsg = error);
+      showErrorSnackBar(context, 'Usuario o contraseña erróneo');
+    }
+    setState(() => _isLoading = false);
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
     _passwordController.dispose();
     _passwordFocus.dispose();
     super.dispose();
@@ -74,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: BpColors.background,
+    backgroundColor: BlueprintColors.background,
     body: GridBackground(
       child: Stack(
         children: <Widget>[
@@ -106,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: const BoxDecoration(
                     border: Border(
                       left: BorderSide(
-                        color: BpColors.primaryContainer,
+                        color: BlueprintColors.accentOrange,
                         width: 2,
                       ),
                     ),
@@ -127,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             'OPERATIONAL',
                             style: _label(
-                              color: BpColors.success,
+                              color: BlueprintColors.successGreen,
                               size: 10,
                               spacing: 1,
                             ),
@@ -142,12 +162,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     Text(
-                      'Ref_ID: MCS_77-X',
+                      'Ref_ID: MED_01',
                       style: _label(size: 9, spacing: 0.5),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'COORD: 40.7128° N',
+                      'COORD: 6.2442° N',
                       style: _label(size: 9, spacing: 0.5),
                     ),
                   ],
@@ -176,7 +196,12 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 24),
         _buildTitle().animate().fadeIn(duration: 500.ms, delay: 400.ms),
         const SizedBox(height: 40),
-        _buildForm()
+        ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: Breakpoints.formMaxWidth,
+              ),
+              child: _buildForm(),
+            )
             .animate()
             .fadeIn(duration: 500.ms, delay: 550.ms)
             .slideY(
@@ -196,8 +221,11 @@ class _LoginScreenState extends State<LoginScreen> {
       width: 128,
       height: 128,
       decoration: BoxDecoration(
-        color: BpColors.background,
-        border: Border.all(color: BpColors.outline.withAlpha(60), width: 1),
+        color: BlueprintColors.background,
+        border: Border.all(
+          color: BlueprintColors.outline.withAlpha(60),
+          width: 1,
+        ),
       ),
       child: ColorFiltered(
         colorFilter: const ColorFilter.mode(Colors.white, BlendMode.modulate),
@@ -208,10 +236,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildTitle() => Column(
     children: <Widget>[
-      Text(
-        'OTA_SYS',
-        style: GoogleFonts.jetBrainsMono(
-          color: BpColors.primaryContainer,
+      const Text(
+        'APP_TRACK',
+        style: TextStyle(
+          fontFamily: AppTextStyles.fontFamily,
+          color: BlueprintColors.accentOrange,
           fontSize: 28,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.5,
@@ -219,10 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
       const SizedBox(height: 6),
-      Text(
-        'v1.0.42 // SYSTEM_VERSION_CONTROL',
-        style: _label(size: 9, spacing: 1),
-      ),
+      Text('v$_version($_buildNumber)', style: _label(size: 9, spacing: 1)),
     ],
   );
 
@@ -231,7 +257,11 @@ class _LoginScreenState extends State<LoginScreen> {
     children: <Widget>[
       Row(
         children: <Widget>[
-          const Icon(Icons.lock_outline, color: BpColors.textDim, size: 14),
+          const Icon(
+            Icons.lock_outline,
+            color: BlueprintColors.textMuted,
+            size: 14,
+          ),
           const SizedBox(width: 8),
           Text('AUTHENTICATION_PROTOCOL', style: _label(size: 10, spacing: 2)),
           const Spacer(),
@@ -248,49 +278,29 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 8),
         Text(
           _errorMsg!,
-          style: _label(color: BpColors.error, size: 9, spacing: 0.5),
+          style: _label(color: BlueprintColors.danger, size: 9, spacing: 0.5),
         ),
       ],
       const SizedBox(height: 20),
       _buildActionButton(),
       const SizedBox(height: 16),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          GestureDetector(
-            onTap: () {},
-            child: Row(
-              children: <Widget>[
-                const Icon(
-                  Icons.help_outline,
-                  color: BpColors.textDim,
-                  size: 13,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'FORGOT_CREDENTIALS',
-                  style: _label(size: 9, spacing: 0.5),
-                ),
-              ],
-            ),
-          ),
-          Text('Term_01', style: _label(size: 9, spacing: 0.5)),
-        ],
-      ),
     ],
   );
 
   Widget _buildUserDisplay() => Container(
     decoration: BoxDecoration(
-      border: Border.all(color: BpColors.outline.withAlpha(40), width: 1),
-      color: BpColors.surfaceContainerLow,
+      border: Border.all(
+        color: BlueprintColors.outline.withAlpha(40),
+        width: 1,
+      ),
+      color: BlueprintColors.surfaceContainerLow,
     ),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     child: Row(
       children: <Widget>[
         const Icon(
           Icons.person_outline,
-          color: BpColors.primaryContainer,
+          color: BlueprintColors.accentOrange,
           size: 16,
         ),
         const SizedBox(width: 10),
@@ -299,14 +309,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: <Widget>[
             Text('SYSTEM_USER', style: _label(size: 8, spacing: 1.5)),
             const SizedBox(height: 2),
-            Text(
-              _emailController.text,
-              style: _label(
-                color: BpColors.textPrimary,
-                size: 11,
-                spacing: 0.3,
-              ),
-            ),
+            Text(hardcodedEmail.split('@').first, style: _label()),
           ],
         ),
       ],
@@ -320,8 +323,9 @@ class _LoginScreenState extends State<LoginScreen> {
         controller: _passwordController,
         focusNode: _passwordFocus,
         obscureText: _obscureText,
-        style: GoogleFonts.jetBrainsMono(
-          color: BpColors.textPrimary,
+        style: const TextStyle(
+          fontFamily: AppTextStyles.fontFamily,
+          color: BlueprintColors.textPrimary,
           fontSize: 13,
           letterSpacing: 4,
           fontWeight: FontWeight.w500,
@@ -332,7 +336,7 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: EdgeInsets.only(left: 12, right: 8),
             child: Icon(
               Icons.terminal,
-              color: BpColors.primaryContainer,
+              color: BlueprintColors.accentOrange,
               size: 18,
             ),
           ),
@@ -343,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
               size: 16,
-              color: BpColors.textDim,
+              color: BlueprintColors.textMuted,
             ),
             onPressed: () => setState(() => _obscureText = !_obscureText),
           ),
@@ -362,12 +366,12 @@ class _LoginScreenState extends State<LoginScreen> {
             Container(
               width: 1,
               height: 24,
-              color: BpColors.outline.withAlpha(80),
+              color: BlueprintColors.outline.withAlpha(80),
             ),
             Container(
               width: 10,
               height: 1,
-              color: BpColors.outline.withAlpha(80),
+              color: BlueprintColors.outline.withAlpha(80),
             ),
           ],
         ),
@@ -380,56 +384,54 @@ class _LoginScreenState extends State<LoginScreen> {
     child: ElevatedButton(
       onPressed: _isLoading ? null : _login,
       style: ElevatedButton.styleFrom(
-        backgroundColor: BpColors.primaryContainer,
-        foregroundColor: BpColors.onPrimaryFixed,
-        disabledBackgroundColor: BpColors.primaryContainer.withAlpha(120),
+        backgroundColor: BlueprintColors.accentOrange,
+        foregroundColor: BlueprintColors.onAccent,
+        disabledBackgroundColor: BlueprintColors.accentOrange.withAlpha(120),
         elevation: 0,
         padding: const EdgeInsets.symmetric(vertical: 20),
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        side: const BorderSide(color: BpColors.primaryContainer, width: 1),
+        side: const BorderSide(color: BlueprintColors.accentOrange, width: 1),
       ),
       child: _isLoading
-          ? Row(
+          ? const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const SizedBox(
+                SizedBox(
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(
                     strokeWidth: 1.5,
-                    color: BpColors.onPrimaryFixed,
+                    color: BlueprintColors.onAccent,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Text(
                   'AUTHENTICATING...',
-                  style: GoogleFonts.jetBrainsMono(
+                  style: TextStyle(
+                    fontFamily: AppTextStyles.fontFamily,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 2.5,
-                    color: BpColors.onPrimaryFixed,
+                    color: BlueprintColors.onAccent,
                   ),
                 ),
               ],
             )
-          : Row(
+          : const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
                   'AUTHENTICATE',
-                  style: GoogleFonts.jetBrainsMono(
+                  style: TextStyle(
+                    fontFamily: AppTextStyles.fontFamily,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 2.5,
-                    color: BpColors.onPrimaryFixed,
+                    color: BlueprintColors.onAccent,
                   ),
                 ),
-                const SizedBox(width: 10),
-                const Icon(
-                  Icons.bolt,
-                  size: 16,
-                  color: BpColors.onPrimaryFixed,
-                ),
+                SizedBox(width: 10),
+                Icon(Icons.bolt, size: 16, color: BlueprintColors.onAccent),
               ],
             ),
     ),
@@ -438,9 +440,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildFooter() =>
       Container(
             decoration: const BoxDecoration(
-              color: BpColors.surfaceContainerLow,
+              color: BlueprintColors.surfaceContainerLow,
               border: Border(
-                top: BorderSide(color: BpColors.outlineVariant, width: 1),
+                top: BorderSide(
+                  color: BlueprintColors.outlineVariant,
+                  width: 1,
+                ),
               ),
             ),
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -456,27 +461,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             'LEGAL_PROTOCOL',
                             style: _label(
-                              color: BpColors.primaryContainer,
+                              color: BlueprintColors.accentOrange,
                               size: 9,
                               spacing: 1.5,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '''©2024 OTA_SYSTEM. ALL RIGHTS RESERVED.\nSECURE ACCESS SCHEMA REQUIRED.''',
+                            '''©2026 OTA_LABS. ALL RIGHTS RESERVED.\n${_appName.toUpperCase()}.''',
                             style: _label(size: 8, spacing: 0.3),
                             maxLines: 2,
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Row(
-                      children: <Widget>[
-                        _FooterIcon(icon: Icons.shield_outlined),
-                        SizedBox(width: 8),
-                        _FooterIcon(icon: Icons.language_outlined),
-                      ],
                     ),
                   ],
                 ),
@@ -498,6 +495,7 @@ class _PulseDot extends StatefulWidget {
 class _PulseDotState extends State<_PulseDot>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
+  late Animation<double> _opacity;
 
   @override
   void initState() {
@@ -506,6 +504,7 @@ class _PulseDotState extends State<_PulseDot>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
+    _opacity = Tween<double>(begin: 0.4, end: 1).animate(_ctrl);
   }
 
   @override
@@ -515,26 +514,14 @@ class _PulseDotState extends State<_PulseDot>
   }
 
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: _ctrl,
-    builder: (_, __) => Opacity(
-      opacity: 0.4 + 0.6 * _ctrl.value,
-      child: Container(width: 6, height: 6, color: BpColors.success),
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: FadeTransition(
+      opacity: _opacity,
+      child: const SizedBox(
+        width: 6,
+        height: 6,
+        child: ColoredBox(color: BlueprintColors.successGreen),
+      ),
     ),
-  );
-}
-
-class _FooterIcon extends StatelessWidget {
-  const _FooterIcon({required this.icon});
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: 32,
-    height: 32,
-    decoration: BoxDecoration(
-      border: Border.all(color: BpColors.outline.withAlpha(80), width: 1),
-    ),
-    child: Icon(icon, size: 15, color: BpColors.textDim),
   );
 }

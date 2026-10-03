@@ -5,11 +5,17 @@ dictionaries: []
 words:
   - cupertino
   - Otalora
+  - pkce
+  - recase
+  - redimensiona
   - riverpod
+  - scanline
   - Scanline
   - Sebas
   - supabase
   - uuid
+  - webp
+  - WEBP
 ignoreWords: []
 import: []
 enabledFileTypes:
