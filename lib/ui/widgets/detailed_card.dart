@@ -25,7 +25,7 @@ class DetailedCard extends StatelessWidget {
         children: <Widget>[
           const SizedBox(height: 4),
           Text(
-            '${app.bundleId}  //  v${app.version}',
+            '${app.bundleId}  //  ${app.version}',
             style: AppTextStyles.bodySmall.copyWith(
               color: BlueprintColors.accentOrange,
             ),

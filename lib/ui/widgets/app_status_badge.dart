@@ -2,20 +2,21 @@ part of com.app_track_ota_labs.app.widgets;
 
 /// Color de estado de una app: verde para `Live`, apagado para `Draft` y
 /// naranja (warning) para cualquier estado intermedio (`In Review`...).
-Color appStatusColor(String status) => switch (status) {
-  'Live' => BlueprintColors.successGreen,
-  'Draft' => BlueprintColors.textMuted,
+Color appStatusColor(String status) => switch (AppStatus.tryParse(status)) {
+  AppStatus.live => BlueprintColors.successGreen,
+  AppStatus.draft => BlueprintColors.textMuted,
   _ => BlueprintColors.warning,
 };
 
 class AppStatusBadge extends StatelessWidget {
   const AppStatusBadge({required this.status, super.key});
 
+  /// Valor guardado en `all_apps.status`; se muestra su [AppStatus.label].
   final String status;
 
   @override
   Widget build(BuildContext context) => CustomBadge(
-    label: status.toUpperCase(),
+    label: (AppStatus.tryParse(status)?.label ?? status).toUpperCase(),
     color: appStatusColor(status),
     filled: true,
     bold: true,

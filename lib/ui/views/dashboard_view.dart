@@ -9,8 +9,12 @@ class DashboardView extends ConsumerWidget {
     AsyncValue<List<AppModel>> apps = ref.watch(appsProvider);
     List<AppModel> list = apps.value ?? <AppModel>[];
     List<AppModel> recent = _byNewest(list);
-    int live = list.where((AppModel a) => a.status == 'Live').length;
-    int draft = list.where((AppModel a) => a.status == 'Draft').length;
+    int live = list
+        .where((AppModel a) => a.status == AppStatus.live.value)
+        .length;
+    int draft = list
+        .where((AppModel a) => a.status == AppStatus.draft.value)
+        .length;
     return RefreshIndicator(
       onRefresh: () => ref.refresh(appsProvider.future),
       child: ListView(
@@ -42,9 +46,9 @@ class DashboardView extends ConsumerWidget {
                   flex: 7,
                   child: PlatformBreakdownCard(
                     counts: <String, int>{
-                      for (String p in _AddApplicationScreenState._platforms)
-                        p: list
-                            .where((AppModel a) => a.platform.contains(p))
+                      for (AppPlatform p in AppPlatform.values)
+                        p.value: list
+                            .where((AppModel a) => a.platform.contains(p.value))
                             .length,
                     },
                     total: list.length,

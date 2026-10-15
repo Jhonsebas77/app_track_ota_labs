@@ -2,7 +2,7 @@ name: app_track_ota_labs
 description: "A app to track my other develops"
 publish_to: "none"
 
-version: 1.0.0+10
+version: 1.0.0+11
 
 environment:
   sdk: ^3.10.0-290.4.beta

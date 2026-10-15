@@ -179,7 +179,10 @@ class _AppDetailScreenState extends ConsumerState<AppDetailScreen> {
           const Divider(height: 1, color: BlueprintColors.outlineVariant),
           _buildInfoRow('VERSION', app.version),
           const Divider(height: 1, color: BlueprintColors.outlineVariant),
-          _buildInfoRow('STATUS', app.status.toUpperCase()),
+          _buildInfoRow(
+            'STATUS',
+            (AppStatus.tryParse(app.status)?.label ?? app.status).toUpperCase(),
+          ),
           if (app.developPlatform.isNotEmpty) ...<Widget>[
             const Divider(height: 1, color: BlueprintColors.outlineVariant),
             _buildInfoRow('DEVELOP_PLATFORM', app.developPlatform),
@@ -220,7 +223,7 @@ class _AppDetailScreenState extends ConsumerState<AppDetailScreen> {
             Text(app.name, style: AppTextStyles.titleLarge),
             const SizedBox(height: 6),
             Text(
-              '${app.bundleId}  //  v${app.version}',
+              '${app.bundleId}  //  ${app.version}',
               style: AppTextStyles.bodySmall.copyWith(
                 color: BlueprintColors.accentOrange,
               ),

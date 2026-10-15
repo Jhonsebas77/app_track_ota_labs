@@ -1,3 +1,4 @@
+import 'package:app_track_ota_labs/core/enums/enums.dart';
 import 'package:app_track_ota_labs/core/models/models.dart';
 import 'package:app_track_ota_labs/core/providers/providers.dart';
 import 'package:app_track_ota_labs/ui/theme/theme.dart';
@@ -41,7 +42,7 @@ void main() {
     expect(find.text('Una app de prueba'), findsOneWidget);
     expect(find.text('IOS'), findsOneWidget);
     expect(find.text('WEB'), findsOneWidget);
-    expect(find.text('DRAFT'), findsWidgets);
+    expect(find.text('BORRADOR'), findsWidgets);
     expect(find.text('com.test.app'), findsOneWidget);
     expect(find.text('2026-10-02 09:05'), findsOneWidget);
     expect(find.text('DEPLOYMENT'), findsOneWidget);
@@ -90,12 +91,13 @@ void main() {
       findsOneWidget,
     );
     expect(find.widgetWithText(TextFormField, '1.2.0'), findsOneWidget);
-    expect(find.text('STATUS'), findsOneWidget);
-    expect(find.text('IN REVIEW'), findsOneWidget);
-    expect(find.text('SAVE_CHANGES'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, '1'), findsOneWidget);
+    expect(find.text('ESTADO'), findsOneWidget);
+    expect(find.text('EN REVISIÓN'), findsOneWidget);
+    expect(find.text('GUARDAR_CAMBIOS'), findsOneWidget);
   });
 
-  testWidgets('Crear muestra versión 1.0.0 y status DRAFT por defecto', (
+  testWidgets('Crear muestra versión 1.0.0 (1) y estado borrador por defecto', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -106,12 +108,12 @@ void main() {
 
     expect(find.text('Nueva aplicación'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, '1.0.0'), findsOneWidget);
-    expect(find.text('STATUS'), findsOneWidget);
-    SegmentedButton<String> status = tester.widget<SegmentedButton<String>>(
-      find.byWidgetPredicate(
-        (Widget w) => w is SegmentedButton<String> && !w.multiSelectionEnabled,
-      ),
-    );
-    expect(status.selected, <String>{'Draft'});
+    expect(find.widgetWithText(TextFormField, '1'), findsOneWidget);
+    expect(find.text('ESTADO'), findsOneWidget);
+    SegmentedButton<AppStatus> status = tester
+        .widget<SegmentedButton<AppStatus>>(
+          find.byType(SegmentedButton<AppStatus>),
+        );
+    expect(status.selected, <AppStatus>{AppStatus.draft});
   });
 }

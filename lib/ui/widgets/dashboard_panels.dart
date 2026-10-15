@@ -9,7 +9,7 @@ class PlatformBreakdownCard extends StatelessWidget {
     super.key,
   });
 
-  /// Plataforma (`iOS`, `Android`, `Web`) → número de apps que la incluyen.
+  /// Plataforma ([AppPlatform.value]) → número de apps que la incluyen.
   final Map<String, int> counts;
   final int total;
 
@@ -95,7 +95,7 @@ class LatestEntryCard extends StatelessWidget {
             const SizedBox(height: 6),
             if (app != null)
               CustomBadge(
-                label: 'v${app.version}',
+                label: app.version,
                 color: BlueprintColors.successGreen,
                 filled: true,
               ),

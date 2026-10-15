@@ -53,7 +53,7 @@ class DashboardCard extends StatelessWidget {
                           label: '[${platform.toUpperCase()}]',
                           color: BlueprintColors.textMuted,
                         ),
-                      Text('v${app.version}', style: AppTextStyles.labelSmall),
+                      Text(app.version, style: AppTextStyles.labelSmall),
                     ],
                   ),
                 ],
